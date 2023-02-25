@@ -1,0 +1,50 @@
+version: "1.1"
+
+services:
+  grafana-mysql:
+    image: grafana-mysql
+    build:
+      context: ./grafana-mysql
+      dockerfile: Dockerfile
+    container_name: grafana-mysql
+    hostname: ${DB_HOSTNAME}
+    environment:
+      MYSQL_ROOT_PASSWORD: ${DB_ROOT_PASSWORD}
+      MYSQL_DATABASE: ${DB_NAME}
+      MYSQL_USER: ${DB_USER}
+      MYSQL_PASSWORD: ${DB_PASSWORD}
+      TZ: Asia/Tokyo
+      host_cache_size: 0
+    init: true
+    volumes:
+      - grafana-mysql:/var/lib/mysql
+
+  grafana-app:
+    image: grafana-app
+    build:
+      context: ./grafana-app
+      dockerfile: Dockerfile
+    container_name: grafana-app
+    user: grafana
+    environment:
+      GF_SECURITY_ADMIN_USER: ${GF_USER}
+      GF_SECURITY_ADMIN_PASSWORD: ${GF_PASSWORD}
+      GF_DATASOURCE_DB: ${GF_DATASOURCE_DB}
+      DB_HOSTNAME: ${DB_HOSTNAME}
+      DB_PORT: 3306
+      DB_USER: ${DB_USER}
+      DB_PASSWORD: ${DB_PASSWORD}
+      DB_NAME: ${DB_NAME}
+    init: true
+    ports:
+      - ${GF_PORT}:3000
+    volumes:
+      - grafana-app:/var/lib/grafana
+    depends_on:
+      - grafana-mysql
+
+volumes:
+  grafana-app:
+    name: grafana-app
+  grafana-mysql:
+    name: grafana-mysql
